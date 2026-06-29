@@ -1,0 +1,14 @@
+*.pem
+*.key
+.aws/
+.env
+*.tar
+*.tar.gz
+*.zip
+*.log
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+Thumbs.db
+*.swp
