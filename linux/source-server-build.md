@@ -68,3 +68,23 @@ Connection: keep-alive
 | HTTP 응답 | `curl -I http://localhost` | `HTTP/1.1 200 OK` | 정상 |
 | Nginx 버전 | `nginx -v` | `nginx/1.28.3 (Ubuntu)` | 확인 완료 |
 | 웹 콘텐츠 경로 | `ls -l /var/www/html` | `index.html` 확인 | 정상 |
+
+## 5. 웹 콘텐츠 수정 및 응답 검증
+- 목적: Nginx가 제공하는 기본 HTML 파일을 수정하고, HTTP 응답 및 로그 기록을 검증한다.
+- 수정 파일: `/var/www/html/index.html`
+- 백업 파일: `/var/www/html/index.html.bak`
+- 검증 명령어:
+  - `curl -I http://localhost`
+  - `curl http://localhost`
+  - `sudo tail -n 20 /var/log/nginx/access.log`
+  - `sudo tail -n 20 /var/log/nginx/error.log`
+
+### 검증 결과
+
+| 항목 | 결과 | 판정 |
+|---|---|---|
+| HTML 파일 수정 | index.html 내용 변경 확인 | 정상 |
+| HTTP 헤더 응답 | `HTTP/1.1 200 OK` | 정상 |
+| HTTP 본문 응답 | 수정된 HTML 출력 확인 | 정상 |
+| access.log | `GET / HTTP/1.1` 요청 기록 확인 | 정상 |
+| error.log | 신규 오류 없음 | 정상 |
