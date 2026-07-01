@@ -88,3 +88,52 @@ Connection: keep-alive
 | HTTP 본문 응답 | 수정된 HTML 출력 확인 | 정상 |
 | access.log | `GET / HTTP/1.1` 요청 기록 확인 | 정상 |
 | error.log | 신규 오류 없음 | 정상 |
+
+## 6. 파일 권한 변경에 따른 웹 접근 장애 검증
+
+- 목적: Nginx가 서비스하는 HTML 파일의 권한이 HTTP 응답에 어떤 영향을 주는지 확인한다.
+- 대상 파일: `/var/www/html/index.html`
+- 정상 권한: `644`
+- 장애 유발 권한: `600`
+
+### 1) 정상 상태 확인
+
+- 명령어:
+  - `ls -l /var/www/html/index.html`
+  - `curl -I http://localhost`
+
+- 결과:
+  - 파일 권한: `rw-r--r--`
+  - HTTP 응답: `200 OK`
+
+### 2) 장애 유발
+
+- 명령어:
+  - `sudo chmod 600 /var/www/html/index.html`
+  - `curl -I http://localhost`
+
+- 결과:
+  - 파일 권한: `rw-------`
+  - HTTP 응답: `403 Forbidden` 또는 접근 오류 발생
+
+### 3) 로그 확인
+
+- 명령어:
+  - `sudo tail -n 20 /var/log/nginx/error.log`
+
+- 확인 내용:
+  - `permission denied` 관련 오류 확인
+
+### 4) 복구
+
+- 명령어:
+  - `sudo chmod 644 /var/www/html/index.html`
+  - `curl -I http://localhost`
+
+- 결과:
+  - HTTP 응답 `200 OK` 복구
+
+### 정리
+
+Nginx 서비스가 정상 실행 중이고 80번 포트가 열려 있어도, 웹 콘텐츠 파일 권한이 잘못 설정되면 HTTP 403 오류가 발생할 수 있다.  
+따라서 웹서비스 장애 점검 시 서비스 상태, 포트 상태, HTTP 응답뿐 아니라 파일 권한과 error.log도 함께 확인해야 한다.
