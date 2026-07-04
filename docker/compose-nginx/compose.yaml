@@ -1,0 +1,7 @@
+services:
+ web:
+  build:
+   context: .
+  container_name: day6-compose-nginx
+  ports:
+   - "8082:80"
