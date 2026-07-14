@@ -16,3 +16,4 @@ Thumbs.db
 # Local backup archives
 backups/
 *.tar.gz
+*.ppk
