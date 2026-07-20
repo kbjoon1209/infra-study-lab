@@ -28,3 +28,14 @@ WSL Ubuntu에서 구축한 Nginx 원본 웹서비스를 AWS EC2 환경으로 수
 - AMI 기반 Private EC2 복제
 - Security Group Reference를 이용한 내부 HTTP 통신
 - Nginx 정상·장애·복구를 확인하는 Bash Health Check
+
+## CI/CD 실습
+
+- GitHub Actions 기반 Static Site Validation
+- Bash Script 문법 검사
+- 임시 HTTP Server를 이용한 Endpoint 검증
+- tar.gz Deployment Package 및 SHA256 생성
+- GitHub Actions Artifact 보관
+- 의도적인 CI 실패 및 복구 검증
+
+[![Static Site CI](https://github.com/kbjoon1209/infra-study-lab/actions/workflows/static-site-ci.yml/badge.svg)](https://github.com/kbjoon1209/infra-study-lab/actions/workflows/static-site-ci.yml)
