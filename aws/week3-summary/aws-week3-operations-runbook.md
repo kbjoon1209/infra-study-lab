@@ -107,7 +107,7 @@ curl -I http://localhost
 
 ## 내가 이해한 내용
 
-- WSL2 ubuntu에서 기존에 했던 http://localhost 검증을 간단하게 할 수 있는 스크립트를 지티피의 도움을 받아 만들었다.
+- WSL2 ubuntu에서 AWS EC2의 http://localhost 검증을 간단하게 할 수 있는 스크립트를 지티피의 도움을 받아 만들었다.
 
 - 기존에는 / -> /health 이런 식으로 별도의 명령어로 작업하던 것을 일괄적으로 묶어서 편하게 명령을 내렸고 http 1.1/ 200 OK라고 나오는 부분도 target ip -> 상태 -> 결과 순으로 알아보기 편했다.
 
