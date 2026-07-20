@@ -1,0 +1,87 @@
+name: Static Site CI
+
+on:
+  # GitHub Actions 화면에서 수동으로 실행할 수 있게 한다.
+  workflow_dispatch:
+
+  # 지정한 Branch와 파일에 Push가 발생하면 자동 실행한다.
+  push:
+    branches:
+      - main
+      - ci-failure-lab
+
+    paths:
+      - "migration/source-site/**"
+      - "scripts/validate-static-site.sh"
+      - "scripts/build-static-site.sh"
+      - ".github/workflows/static-site-ci.yml"
+
+  # main Branch 대상 Pull Request에서도 동일한 검사를 실행한다.
+  pull_request:
+    branches:
+      - main
+
+    paths:
+      - "migration/source-site/**"
+      - "scripts/validate-static-site.sh"
+      - "scripts/build-static-site.sh"
+      - ".github/workflows/static-site-ci.yml"
+
+# Workflow가 Repository 내용을 읽는 최소 권한만 사용하도록 제한한다.
+permissions:
+  contents: read
+
+jobs:
+  validate-and-build:
+    # GitHub가 제공하는 Ubuntu Runner에서 Job을 실행한다.
+    runs-on: ubuntu-latest
+
+    # 예상치 못한 무한 대기를 막기 위해 최대 시간을 제한한다.
+    timeout-minutes: 10
+
+    steps:
+      # Runner의 빈 작업 공간에 Repository 내용을 가져온다.
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      # 두 Bash Script를 실제 실행하기 전에 문법부터 검사한다.
+      - name: Check Bash syntax
+        shell: bash
+        run: |
+          bash -n scripts/validate-static-site.sh
+          bash -n scripts/build-static-site.sh
+
+      # 파일 존재, 기대 문자열과 임시 HTTP 응답을 검사한다.
+      - name: Validate static site
+        shell: bash
+        run: |
+          bash scripts/validate-static-site.sh
+
+      # 검증된 Source를 tar.gz와 SHA256 파일로 만든다.
+      - name: Build deployable package
+        shell: bash
+        run: |
+          bash scripts/build-static-site.sh
+
+      # 생성된 Checksum 파일을 별도 Step에서 다시 검사한다.
+      - name: Verify build checksum
+        shell: bash
+        run: |
+          cd dist
+          sha256sum -c *.sha256
+
+      # Workflow Log에서 Build 결과를 빠르게 확인한다.
+      - name: Show build outputs
+        shell: bash
+        run: |
+          ls -lh dist
+          tar -tzf dist/*.tar.gz
+
+      # 다음 CD 단계에서 사용할 Package를 GitHub Artifact로 보관한다.
+      - name: Upload deployable artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: static-site-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7

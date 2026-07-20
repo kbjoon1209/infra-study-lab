@@ -17,3 +17,6 @@ Thumbs.db
 backups/
 *.tar.gz
 *.ppk
+
+# CI build outputs
+dist/
