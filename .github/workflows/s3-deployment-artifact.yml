@@ -1,0 +1,81 @@
+name: Upload Deployment Package to S3
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-northeast-2
+  S3_BUCKET: ${{ vars.AWS_DEPLOY_BUCKET }}
+  S3_PREFIX: deployments/${{ github.sha }}
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Validate and build package
+        shell: bash
+        run: |
+          bash -n scripts/validate-static-site.sh
+          bash -n scripts/build-static-site.sh
+
+          bash scripts/validate-static-site.sh
+          bash scripts/build-static-site.sh
+
+      - name: Configure temporary AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.AWS_OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: bj-github-s3-upload
+          mask-aws-account-id: true
+
+      - name: Verify AWS identity and target
+        shell: bash
+        run: |
+          test -n "$S3_BUCKET"
+
+          echo "GitHub Ref: ${GITHUB_REF}"
+          echo "S3 Prefix: ${S3_PREFIX}"
+
+          aws sts get-caller-identity
+
+      - name: Upload package to S3
+        shell: bash
+        run: |
+          aws s3 cp \
+            dist/ \
+            "s3://${S3_BUCKET}/${S3_PREFIX}/" \
+            --recursive \
+            --only-show-errors
+
+      - name: List uploaded objects
+        shell: bash
+        run: |
+          aws s3 ls \
+            "s3://${S3_BUCKET}/${S3_PREFIX}/"
+
+      - name: Download and verify package
+        shell: bash
+        run: |
+          rm -rf /tmp/s3-deploy-verify
+          mkdir -p /tmp/s3-deploy-verify
+
+          aws s3 cp \
+            "s3://${S3_BUCKET}/${S3_PREFIX}/" \
+            /tmp/s3-deploy-verify/ \
+            --recursive \
+            --only-show-errors
+
+          cd /tmp/s3-deploy-verify
+
+          sha256sum -c *.sha256
+          tar -tzf *.tar.gz
+          cat build-info.txt
